@@ -3,12 +3,28 @@ require 'open3'
 require_relative 'helpers/spec_helper'
 require_relative 'helpers/custom_matchers'
 require_relative 'helpers/uaacc_result'
+require_relative 'helpers/require_uaacc'
+require_uaacc
+require_relative 'helpers/redefine_uaacc_system_class'
 
 RSpec.describe 'uaacc' do
+
+  # A test method to run the uaacc CLI with arguments and make its behavior observable
   def uaacc(args)
-    uaacc_path = File.join(File.dirname(__FILE__), '..', 'uaacc')
-    stdout, stderr, status = Open3.capture3("#{uaacc_path} #{args}")
-    UaaccResult.new(stdout, stderr, status.exitstatus)
+    System.reset
+
+    begin
+      CLI.new.main(args.split(' '))
+      raise 'Expected uaacc to call exit, but it did not'
+    rescue => e
+      if e.message.start_with?('uaacc exited ')
+        status = e.message.gsub('uaacc exited ', '').to_i
+      else
+        raise
+      end
+    end
+
+    UaaccResult.new(System.stdout, System.stderr, System.status)
   end
 
   let(:expected_usage_help_text) do

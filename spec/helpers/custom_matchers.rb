@@ -12,7 +12,7 @@ RSpec::Matchers.define :be_quiet_success do |_expected|
   end
 
   def errors(actual, invert)
-    msg = "Expected #{invert ? 'not ' : ''}to be a quiet success but "
+    msg = "Expected #{invert ? 'not ' : ''}to be a quiet success\nbut "
     errors = []
     errors << ["actual status was \"#{actual.status.inspect}\"", actual.successful?]
     errors << ["actual stdout was \"#{actual.stdout.inspect}\"", !actual.has_stdout?]
@@ -35,7 +35,7 @@ RSpec::Matchers.define :be_successful_with_stdout do |expected_stdout|
   end
 
   def errors(actual, expected_stdout, invert)
-    msg = "Expected #{invert ? 'not ' : ''}to be a success with stdout \"#{expected_stdout.inspect}\" but "
+    msg = "Expected #{invert ? 'not ' : ''}to be a success with stdout \"#{expected_stdout.inspect}\"\nbut "
     errors = []
     errors << ["actual status was \"#{actual.status.inspect}\"", actual.successful?]
     errors << ["actual stdout was \"#{actual.stdout.inspect}\"", actual.stdout == expected_stdout]
@@ -58,7 +58,7 @@ RSpec::Matchers.define :be_error_with_stderr_and_status do |expected_stderr, exp
   end
 
   def errors(actual, expected_stderr, expected_status, invert)
-    msg = "Expected #{invert ? 'not ' : ''}to be an error with stderr \"#{expected_stderr.inspect}\" and status #{expected_status} but "
+    msg = "Expected #{invert ? 'not ' : ''}to be an error with stderr \"#{expected_stderr.inspect}\" and status #{expected_status}\nbut "
     errors = []
     errors << ["actual status was \"#{actual.status.inspect}\"", actual.status == expected_status]
     errors << ["actual stdout was \"#{actual.stdout.inspect}\"", !actual.has_stdout?]

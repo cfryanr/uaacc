@@ -9,43 +9,60 @@ require 'json'
 require 'net/http'
 require 'net/https'
 
-def stringify(hash)
-  return hash unless hash.is_a?(Hash)
-  new_hash = {}
-  hash.each do |k, v|
-    new_hash[k.to_s] = stringify(v)
+class HashUtils
+  def self.stringify(hash)
+    return hash unless hash.is_a?(Hash)
+    new_hash = {}
+    hash.each do |k, v|
+      new_hash[k.to_s] = stringify(v)
+    end
+    new_hash
   end
-  new_hash
-end
 
-def symbolize(hash)
-  return hash unless hash.is_a?(Hash)
-  new_hash = {}
-  hash.each do |k, v|
-    new_hash[k.to_sym] = symbolize(v)
-  end
-  new_hash
-end
-
-def usage
-  name = File.basename(__FILE__)
-  STDERR.puts 'Usage:'
-  STDERR.puts 'Global options: [{-h|--help}]'
-  [Target, Login, Logout, Get, Post, Put, Delete, Expect, Print].each do |klass|
-    klass.usage.each { |usage| STDERR.puts "  #{name} " + usage }
+  def self.symbolize(hash)
+    return hash unless hash.is_a?(Hash)
+    new_hash = {}
+    hash.each do |k, v|
+      new_hash[k.to_sym] = symbolize(v)
+    end
+    new_hash
   end
 end
 
-def arg_error(msg)
-  STDERR.puts 'ERROR: ' + msg
-  STDERR.puts
-  usage
-  exit 1
+class System
+  def self.puts_stdout(msg)
+    puts msg
+  end
+
+  def self.puts_stderr(msg)
+    STDERR.puts msg
+  end
+
+  def self.do_exit(code)
+    exit code
+  end
 end
 
-def error(msg)
-  STDERR.puts 'ERROR: ' + msg
-  exit 2
+class Errors
+  def self.usage
+    System.puts_stderr 'Usage:'
+    System.puts_stderr 'Global options: [{-h|--help}]'
+    [Target, Login, Logout, Get, Post, Put, Delete, Expect, Print].each do |klass|
+      klass.usage.each { |usage| System.puts_stderr "  uaacc " + usage }
+    end
+  end
+
+  def self.arg_error(msg)
+    System.puts_stderr 'ERROR: ' + msg
+    System.puts_stderr ''
+    usage
+    System.do_exit 1
+  end
+
+  def self.error(msg)
+    System.puts_stderr 'ERROR: ' + msg
+    System.do_exit 2
+  end
 end
 
 class Config
@@ -65,11 +82,11 @@ class Config
     FileUtils.touch(FILE)
     text = File.read(FILE)
     text = '{}' if text == ''
-    symbolize(YAML.load(text))
+    HashUtils.symbolize(YAML.load(text))
   end
 
   def self.write(config)
-    File.write(FILE, stringify(config).to_yaml)
+    File.write(FILE, HashUtils.stringify(config).to_yaml)
   end
 end
 
@@ -100,7 +117,7 @@ class Command
   end
 
   def safe_shift(args)
-    arg_error('Not enough arguments') if args.length == 0
+    Errors.arg_error('Not enough arguments') if args.length == 0
     args.shift
   end
 
@@ -108,7 +125,7 @@ class Command
     path = path.gsub(/^\/*/, '') # remove leading slashes
     value, stderr, status = Open3.capture3("bosh int #{ENV['HOME']}/.uaacc --path /json_response_body_as_yml/#{path}")
     value = value.chomp # remove one trailing newline, which is added by bosh int
-    error("Error runnning 'bosh int': #{stderr.chomp.gsub(/Exit code 1$/, '')}") unless status == 0
+    Errors.error("Error runnning 'bosh int': #{stderr.chomp.gsub(/Exit code 1$/, '')}") unless status == 0
     value
   end
 
@@ -141,7 +158,7 @@ class Command
           headers: request.to_hash,
           body: request.body
       }
-      puts stringify(request_to_print).to_yaml
+      System.puts_stdout HashUtils.stringify(request_to_print).to_yaml
     end
 
     response = Net::HTTP.start(
@@ -158,7 +175,7 @@ class Command
     end
 
     if @debug
-      puts stringify(response_as_hash(response).merge(type: 'response')).to_yaml
+      System.puts_stderr HashUtils.stringify(response_as_hash(response).merge(type: 'response')).to_yaml
     end
 
     response
@@ -171,7 +188,7 @@ class Target < Command
   end
 
   def parse_args(args)
-    arg_error('Wrong number of arguments to "target" subcommand') unless args.length <= 1
+    Errors.arg_error('Wrong number of arguments to "target" subcommand') unless args.length <= 1
     @target = args.at(0)
   end
 
@@ -185,20 +202,20 @@ class Target < Command
 
   def save_target(target)
     uri = URI.parse(target)
-    error('invalid target scheme') unless uri.scheme == 'http' || uri.scheme == 'https'
-    error('target should not have fragment') if uri.fragment
-    error('target should not have query params') if uri.query
+    Errors.error('invalid target scheme') unless uri.scheme == 'http' || uri.scheme == 'https'
+    Errors.error('target should not have fragment') if uri.fragment
+    Errors.error('target should not have query params') if uri.query
     uri.path = uri.path.gsub(/\/*$/, '') # remove all trailing slashes
     Config.put(target: uri.to_s)
   end
 
   def print_target
-    puts self.class.target
+    System.puts_stdout self.class.target
   end
 
   def self.target
     target = Config.get(:target)
-    error('No target set') unless target
+    Errors.error('No target set') unless target
     URI.parse(target)
   end
 end
@@ -208,9 +225,8 @@ class Login < Command
     ['login <username> <password>']
   end
 
-
   def parse_args(args)
-    arg_error('Wrong number of arguments to "login" subcommand') unless args.length == 2
+    Errors.arg_error('Wrong number of arguments to "login" subcommand') unless args.length == 2
     @username = args.at(0)
     @password = args.at(1)
   end
@@ -221,7 +237,7 @@ class Login < Command
     login_get_uri = Target.target
     login_get_uri.path = login_get_uri.path + '/login'
     login_get_response = get_request(login_get_uri)
-    error('GET /login failed') unless login_get_response.is_a?(Net::HTTPSuccess)
+    Errors.error('GET /login failed') unless login_get_response.is_a?(Net::HTTPSuccess)
     csrf_token = Config.get(:cookies)[:'X-Uaa-Csrf']
 
     login_post_uri = Target.target
@@ -233,8 +249,8 @@ class Login < Command
         'form_redirect_uri' => Target.target.to_s
     }
     login_post_response = post_request(login_post_uri, login_form_fields)
-    error('POST /login.do did not redirect as expected') unless login_post_response.is_a?(Net::HTTPRedirection)
-    error('Login failed. Wrong password?') if URI.parse(login_post_response['Location']).query&.include?('error=login_failure')
+    Errors.error('POST /login.do did not redirect as expected') unless login_post_response.is_a?(Net::HTTPRedirection)
+    Errors.error('Login failed. Wrong password?') if URI.parse(login_post_response['Location']).query&.include?('error=login_failure')
   end
 end
 
@@ -244,7 +260,7 @@ class Logout < Command
   end
 
   def parse_args(args)
-    arg_error('Wrong number of arguments to "logout" subcommand') unless args.length == 0
+    Errors.arg_error('Wrong number of arguments to "logout" subcommand') unless args.length == 0
   end
 
   def run
@@ -258,7 +274,7 @@ class Get < Command
   end
 
   def parse_args(args)
-    arg_error('Wrong number of arguments to "get" subcommand') unless args.length >= 1
+    Errors.arg_error('Wrong number of arguments to "get" subcommand') unless args.length >= 1
 
     @json = args.delete('--json')
     html = args.delete('--html')
@@ -325,13 +341,13 @@ class Print < Command
   end
 
   def parse_args(args)
-    arg_error('Wrong number of arguments to "print" subcommand') unless args.length == 2
-    arg_error('Unknown subcommand of "print" subcommand') unless args.at(0) == 'body_json_path'
+    Errors.arg_error('Wrong number of arguments to "print" subcommand') unless args.length == 2
+    Errors.arg_error('Unknown subcommand of "print" subcommand') unless args.at(0) == 'body_json_path'
     @path = args.at(1)
   end
 
   def run
-    puts get_value_with_bosh_int_path(@path)
+    System.puts_stdout get_value_with_bosh_int_path(@path)
   end
 end
 
@@ -356,7 +372,7 @@ class Expect < Command
       @modifier = safe_shift(args)
       parse_remaining_args(args)
     else
-      arg_error('Unrecognized subcommand of "expect" subcommand')
+      Errors.arg_error('Unrecognized subcommand of "expect" subcommand')
     end
   end
 
@@ -372,7 +388,7 @@ class Expect < Command
 
     @expected_text = safe_shift(args)
 
-    arg_error('Extra arguments found') unless args.length == 0
+    Errors.arg_error('Extra arguments found') unless args.length == 0
   end
 
   def run
@@ -384,7 +400,7 @@ class Expect < Command
     when 'body'
       value = response[:body]
     when 'header'
-      value = stringify(response[:headers])[@modifier.downcase]&.first
+      value = HashUtils.stringify(response[:headers])[@modifier.downcase]&.first
     when 'body_json_path'
       value = get_value_with_bosh_int_path(@modifier)
     end
@@ -401,13 +417,13 @@ class Expect < Command
     when 'matches'
       result = value.match(@expected_text)
     else
-      arg_error('Unrecognized matcher for "expect" subcommand')
+      Errors.arg_error('Unrecognized matcher for "expect" subcommand')
     end
 
     result = !result if @not
 
     if !result
-      error("Expected #{@subject}#{@modifier ? ' ' + @modifier : ''}#{@not ? ' not' : ''}\n  Expected #{@verb}: \"#{@expected_text}\"\n  Actual: \"#{value}\"")
+      Errors.error("Expected #{@subject}#{@modifier ? ' ' + @modifier : ''}#{@not ? ' not' : ''}\n  Expected #{@verb}: \"#{@expected_text}\"\n  Actual: \"#{value}\"")
     end
   end
 end
@@ -419,16 +435,17 @@ class CLI
     debug = args.delete('--debug')
 
     if args.include?('-h') || args.include?('--help') || args.length == 0
-      usage
-      exit 0
+      Errors.usage
+      System.do_exit 0
     end
 
     subcommand = args.shift
-    arg_error('Unrecognized subcommand') unless ALLOWED_SUBCOMMANDS.include?(subcommand)
+
+    Errors.arg_error('Unrecognized subcommand') unless ALLOWED_SUBCOMMANDS.include?(subcommand)
 
     Object.const_get(subcommand.capitalize).new(args, debug).run
 
-    exit 0
+    System.do_exit 0
   end
 end
 
