@@ -1,0 +1,435 @@
+#!/usr/bin/env ruby
+
+require 'pp'
+require 'open3'
+require 'uri'
+require 'fileutils'
+require 'yaml'
+require 'json'
+require 'net/http'
+require 'net/https'
+
+def stringify(hash)
+  return hash unless hash.is_a?(Hash)
+  new_hash = {}
+  hash.each do |k, v|
+    new_hash[k.to_s] = stringify(v)
+  end
+  new_hash
+end
+
+def symbolize(hash)
+  return hash unless hash.is_a?(Hash)
+  new_hash = {}
+  hash.each do |k, v|
+    new_hash[k.to_sym] = symbolize(v)
+  end
+  new_hash
+end
+
+def usage
+  name = File.basename(__FILE__)
+  STDERR.puts 'Usage:'
+  STDERR.puts 'Global options: [{-h|--help}]'
+  [Target, Login, Logout, Get, Post, Put, Delete, Expect, Print].each do |klass|
+    klass.usage.each { |usage| STDERR.puts "  #{name} " + usage }
+  end
+end
+
+def arg_error(msg)
+  STDERR.puts 'ERROR: ' + msg
+  STDERR.puts
+  usage
+  exit 1
+end
+
+def error(msg)
+  STDERR.puts 'ERROR: ' + msg
+  exit 2
+end
+
+class Config
+  FILE = File.join(ENV['HOME'], '.uaacc')
+
+  def self.put(hash)
+    write(read.merge(hash))
+  end
+
+  def self.get(key)
+    read[key]
+  end
+
+  private
+
+  def self.read
+    FileUtils.touch(FILE)
+    text = File.read(FILE)
+    text = '{}' if text == ''
+    symbolize(YAML.load(text))
+  end
+
+  def self.write(config)
+    File.write(FILE, stringify(config).to_yaml)
+  end
+end
+
+class Command
+  def initialize(args, debug)
+    @debug = debug
+    parse_args(args)
+  end
+
+  def get_request(uri, json = false)
+    do_request(Net::HTTP::Get.new(uri), uri, json)
+  end
+
+  def post_request(uri, form_data)
+    request = Net::HTTP::Post.new(uri)
+    request.set_form_data(form_data)
+    do_request(request, uri)
+  end
+
+  def save_response(response)
+    json = response['content-type'].start_with?('application/json')
+    Config.put(response: response_as_hash(response))
+    if json
+      Config.put(json_response_body_as_yml: JSON.parse(response.body))
+    else
+      Config.put(json_response_body_as_yml: nil)
+    end
+  end
+
+  def safe_shift(args)
+    arg_error('Not enough arguments') if args.length == 0
+    args.shift
+  end
+
+  def get_value_with_bosh_int_path(path)
+    path = path.gsub(/^\/*/, '') # remove leading slashes
+    value, stderr, status = Open3.capture3("bosh int #{ENV['HOME']}/.uaacc --path /json_response_body_as_yml/#{path}")
+    value = value.chomp # remove one trailing newline, which is added by bosh int
+    error("Error runnning 'bosh int': #{stderr.chomp.gsub(/Exit code 1$/, '')}") unless status == 0
+    value
+  end
+
+  private
+
+  def response_as_hash(response)
+    body = response.body.encode('UTF-8', :invalid => :replace, :undef => :replace)
+    {
+        code: response.code.to_i,
+        headers: response.to_hash,
+        body: body
+    }
+  end
+
+  def do_request(request, uri, json = false)
+    cookies = Config.get(:cookies)
+    request['Cookie'] = cookies.to_a.map { |k, v| "#{k}=#{v}" }.join('; ')
+
+    if json
+      request['Accept'] = 'application/json'
+    else
+      request['Accept'] = 'text/html'
+    end
+
+    if @debug
+      request_to_print = {
+          type: 'request',
+          method: request.method,
+          uri: request.uri.to_s,
+          headers: request.to_hash,
+          body: request.body
+      }
+      puts stringify(request_to_print).to_yaml
+    end
+
+    response = Net::HTTP.start(
+        uri.host, uri.port,
+        :use_ssl => uri.scheme == 'https',
+        :verify_mode => OpenSSL::SSL::VERIFY_NONE) do |http|
+      http.request(request)
+    end
+
+    set_cookies = response.get_fields('set-cookie')
+    if set_cookies
+      set_cookies = set_cookies.map { |f| f.split(';').first.split('=') }.to_h
+      Config.put(cookies: cookies.merge(set_cookies))
+    end
+
+    if @debug
+      puts stringify(response_as_hash(response).merge(type: 'response')).to_yaml
+    end
+
+    response
+  end
+end
+
+class Target < Command
+  def self.usage
+    ['target [url]']
+  end
+
+  def parse_args(args)
+    arg_error('Wrong number of arguments to "target" subcommand') unless args.length <= 1
+    @target = args.at(0)
+  end
+
+  def run
+    if @target
+      save_target(@target)
+    else
+      print_target
+    end
+  end
+
+  def save_target(target)
+    uri = URI.parse(target)
+    error('invalid target scheme') unless uri.scheme == 'http' || uri.scheme == 'https'
+    error('target should not have fragment') if uri.fragment
+    error('target should not have query params') if uri.query
+    uri.path = uri.path.gsub(/\/*$/, '') # remove all trailing slashes
+    Config.put(target: uri.to_s)
+  end
+
+  def print_target
+    puts self.class.target
+  end
+
+  def self.target
+    target = Config.get(:target)
+    error('No target set') unless target
+    URI.parse(target)
+  end
+end
+
+class Login < Command
+  def self.usage
+    ['login <username> <password>']
+  end
+
+
+  def parse_args(args)
+    arg_error('Wrong number of arguments to "login" subcommand') unless args.length == 2
+    @username = args.at(0)
+    @password = args.at(1)
+  end
+
+  def run
+    Logout.new([], false).run
+
+    login_get_uri = Target.target
+    login_get_uri.path = login_get_uri.path + '/login'
+    login_get_response = get_request(login_get_uri)
+    error('GET /login failed') unless login_get_response.is_a?(Net::HTTPSuccess)
+    csrf_token = Config.get(:cookies)[:'X-Uaa-Csrf']
+
+    login_post_uri = Target.target
+    login_post_uri.path = login_post_uri.path + '/login.do'
+    login_form_fields = {
+        'username' => @username,
+        'password' => @password,
+        'X-Uaa-Csrf' => csrf_token,
+        'form_redirect_uri' => Target.target.to_s
+    }
+    login_post_response = post_request(login_post_uri, login_form_fields)
+    error('POST /login.do did not redirect as expected') unless login_post_response.is_a?(Net::HTTPRedirection)
+    error('Login failed. Wrong password?') if URI.parse(login_post_response['Location']).query&.include?('error=login_failure')
+  end
+end
+
+class Logout < Command
+  def self.usage
+    ['logout']
+  end
+
+  def parse_args(args)
+    arg_error('Wrong number of arguments to "logout" subcommand') unless args.length == 0
+  end
+
+  def run
+    Config.put(cookies: {})
+  end
+end
+
+class Get < Command
+  def self.usage
+    ['get <path> [<query1=value1> ... <queryN=valueN>] [--html|--json]']
+  end
+
+  def parse_args(args)
+    arg_error('Wrong number of arguments to "get" subcommand') unless args.length >= 1
+
+    @json = args.delete('--json')
+    html = args.delete('--html')
+    @json = !html unless @json
+
+    @path = args.shift
+    @path = '/' + @path.gsub(/^\/*/, '') # ensure exactly one leading slash
+    @query_params = args
+    # TODO add --uaac_token which reads the uaac conf file's token and adds the auth header
+  end
+
+  def run
+    uri = Target.target
+    uri.path = uri.path + @path
+    uri.query = URI.encode_www_form(@query_params.map { |arg| arg.split('=') }.to_h)
+    response = get_request(uri, @json)
+    save_response(response)
+  end
+end
+
+class Post < Command
+  def self.usage
+    ['post TBD'] # TODO
+  end
+
+  def parse_args(args)
+  end
+
+  def run
+    raise 'not yet implemented' # TODO
+    # TODO have an easy way to post a json payload
+  end
+end
+
+class Put < Command
+  def self.usage
+    ['put TBD'] # TODO
+  end
+
+  def parse_args(args)
+  end
+
+  def run
+    raise 'not yet implemented' # TODO
+  end
+end
+
+class Delete < Command
+  def self.usage
+    ['delete TBD'] # TODO
+  end
+
+  def parse_args(args)
+  end
+
+  def run
+    raise 'not yet implemented' # TODO
+  end
+end
+
+class Print < Command
+  def self.usage
+    ['print body_json_path <path>'] # TODO support all the same subjects as "expect"
+  end
+
+  def parse_args(args)
+    arg_error('Wrong number of arguments to "print" subcommand') unless args.length == 2
+    arg_error('Unknown subcommand of "print" subcommand') unless args.at(0) == 'body_json_path'
+    @path = args.at(1)
+  end
+
+  def run
+    puts get_value_with_bosh_int_path(@path)
+  end
+end
+
+class Expect < Command
+  def self.usage
+    [
+        'expect {status|body} [not] {equals|contains|starts_with|ends_with|matches} <expected_text>',
+        'expect header <header_name> [not] {equals|contains|starts_with|ends_with|matches} <expected_text>',
+        'expect body_json_path <json_path> [not] {equals|contains|starts_with|ends_with|matches} <expected_text>'
+    ]
+  end
+
+  def parse_args(args)
+    @subject = safe_shift(args)
+    @not = false
+    @modifier = nil
+
+    case @subject
+    when 'status', 'body'
+      parse_remaining_args(args)
+    when 'header', 'body_json_path'
+      @modifier = safe_shift(args)
+      parse_remaining_args(args)
+    else
+      arg_error('Unrecognized subcommand of "expect" subcommand')
+    end
+  end
+
+  def parse_remaining_args(args)
+    next_arg = safe_shift(args)
+
+    if next_arg == 'not'
+      @not = true
+      @verb = safe_shift(args)
+    else
+      @verb = next_arg
+    end
+
+    @expected_text = safe_shift(args)
+
+    arg_error('Extra arguments found') unless args.length == 0
+  end
+
+  def run
+    response = Config.get(:response)
+
+    case @subject
+    when 'status'
+      value = response[:code].to_s
+    when 'body'
+      value = response[:body]
+    when 'header'
+      value = stringify(response[:headers])[@modifier.downcase]&.first
+    when 'body_json_path'
+      value = get_value_with_bosh_int_path(@modifier)
+    end
+
+    case @verb
+    when 'equals'
+      result = (value == @expected_text)
+    when 'contains'
+      result = value.include?(@expected_text)
+    when 'starts_with'
+      result = value.start_with?(@expected_text)
+    when 'ends_with'
+      result = value.end_with?(@expected_text)
+    when 'matches'
+      result = value.match(@expected_text)
+    else
+      arg_error('Unrecognized matcher for "expect" subcommand')
+    end
+
+    result = !result if @not
+
+    if !result
+      error("Expected #{@subject}#{@modifier ? ' ' + @modifier : ''}#{@not ? ' not' : ''}\n  Expected #{@verb}: \"#{@expected_text}\"\n  Actual: \"#{value}\"")
+    end
+  end
+end
+
+class CLI
+  ALLOWED_SUBCOMMANDS = ['target', 'login', 'get', 'post', 'put', 'delete', 'expect', 'print'].freeze
+
+  def main(args)
+    debug = args.delete('--debug')
+
+    if args.include?('-h') || args.include?('--help') || args.length == 0
+      usage
+      exit 0
+    end
+
+    subcommand = args.shift
+    arg_error('Unrecognized subcommand') unless ALLOWED_SUBCOMMANDS.include?(subcommand)
+
+    Object.const_get(subcommand.capitalize).new(args, debug).run
+
+    exit 0
+  end
+end
+
+CLI.new.main(ARGV)
