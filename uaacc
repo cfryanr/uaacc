@@ -178,7 +178,7 @@ class Command
 
     set_cookies = response.get_fields('set-cookie')
     if set_cookies
-      set_cookies = set_cookies.map { |f| f.split(';').first.split('=') }.to_h
+      set_cookies = set_cookies.map { |f| f.split(';').first.split('=', 2) }.to_h
       Config.put(cookies: cookies.merge(set_cookies))
     end
 
@@ -259,7 +259,7 @@ class Login < Command
     login_post_response = post_request(login_post_uri, login_form_fields)
     Errors.error('POST /login.do did not redirect as expected') unless login_post_response.is_a?(Net::HTTPRedirection)
     redirect_location_query_params = URI.parse(login_post_response['Location']).query || ''
-    Errors.error('Login failed. Wrong password?') if redirect_location_query_params.include?('error=login_failure')
+    Errors.error('Login failed. Wrong username or password?') if redirect_location_query_params.include?('error=login_failure')
   end
 end
 
@@ -439,7 +439,7 @@ class Expect < Command
 end
 
 class CLI
-  ALLOWED_SUBCOMMANDS = ['target', 'login', 'get', 'post', 'put', 'delete', 'expect', 'print'].freeze
+  ALLOWED_SUBCOMMANDS = ['target', 'login', 'logout', 'get', 'post', 'put', 'delete', 'expect', 'print'].freeze
 
   def main(args)
     debug = args.delete('--debug')

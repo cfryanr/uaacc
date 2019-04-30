@@ -3,7 +3,7 @@ end
 
 class System
   class << self
-    attr_reader :stdout, :stderr, :status, :conf_file
+    attr_reader :stdout, :stderr, :status
   end
 
   def self.puts_stdout(msg)
@@ -30,6 +30,14 @@ class System
   def self.write_file(path, content)
     raise "Unexpected write_file: #{path}" unless path == Config::FILE
     @conf_file = content
+  end
+
+  def self.set_config_file_content(config)
+    @conf_file = HashUtils.stringify(config).to_yaml
+  end
+
+  def self.config_file_contents
+    HashUtils.symbolize(YAML.load(@config_file == '' ? '{}' : @conf_file))
   end
 
   def self.reset
