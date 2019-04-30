@@ -1,9 +1,8 @@
-require_relative 'helpers/spec_helper'
 require 'vcr'
+require_relative 'helpers/rspec_config'
 require_relative 'helpers/custom_matchers'
 require_relative 'helpers/uaacc_result'
-require_relative 'helpers/require_uaacc'
-require_uaacc
+load '../uaacc'
 require_relative 'helpers/redefine_uaacc_system_class'
 
 RSpec.describe 'uaacc' do
@@ -40,6 +39,14 @@ RSpec.describe 'uaacc' do
 
   before do
     System.reset_files
+  end
+
+  describe 'the source code' do
+    let(:source) { File.read('../uaacc').rstrip }
+
+    it 'should end with an invocation of main which only runs when the script is invoked directly' do
+      expect(source).to end_with('CLI.new.main(ARGV) if __FILE__ == $0')
+    end
   end
 
   describe 'help message' do

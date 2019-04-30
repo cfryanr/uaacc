@@ -459,4 +459,4 @@ class CLI
   end
 end
 
-CLI.new.main(ARGV)
+CLI.new.main(ARGV) if __FILE__ == $0
