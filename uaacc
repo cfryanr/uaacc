@@ -258,7 +258,8 @@ class Login < Command
     }
     login_post_response = post_request(login_post_uri, login_form_fields)
     Errors.error('POST /login.do did not redirect as expected') unless login_post_response.is_a?(Net::HTTPRedirection)
-    Errors.error('Login failed. Wrong password?') if URI.parse(login_post_response['Location']).query&.include?('error=login_failure')
+    redirect_location_query_params = URI.parse(login_post_response['Location']).query || ''
+    Errors.error('Login failed. Wrong password?') if redirect_location_query_params.include?('error=login_failure')
   end
 end
 
@@ -408,7 +409,8 @@ class Expect < Command
     when 'body'
       value = response[:body]
     when 'header'
-      value = HashUtils.stringify(response[:headers])[@modifier.downcase]&.first
+      header_values = HashUtils.stringify(response[:headers])[@modifier.downcase] || []
+      value = header_values.first
     when 'body_json_path'
       value = get_value_with_bosh_int_path(@modifier)
     end
