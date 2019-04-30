@@ -41,6 +41,15 @@ class System
   def self.do_exit(code)
     exit code
   end
+
+  def self.read_file(path)
+    FileUtils.touch(path)
+    File.read(path)
+  end
+
+  def self.write_file(path, content)
+    File.write(path, content)
+  end
 end
 
 class Errors
@@ -79,14 +88,13 @@ class Config
   private
 
   def self.read
-    FileUtils.touch(FILE)
-    text = File.read(FILE)
+    text = System.read_file(FILE)
     text = '{}' if text == ''
     HashUtils.symbolize(YAML.load(text))
   end
 
   def self.write(config)
-    File.write(FILE, HashUtils.stringify(config).to_yaml)
+    System.write_file(FILE, HashUtils.stringify(config).to_yaml)
   end
 end
 

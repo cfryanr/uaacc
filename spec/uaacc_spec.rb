@@ -1,5 +1,3 @@
-require 'open3'
-
 require_relative 'helpers/spec_helper'
 require_relative 'helpers/custom_matchers'
 require_relative 'helpers/uaacc_result'
@@ -9,19 +7,13 @@ require_relative 'helpers/redefine_uaacc_system_class'
 
 RSpec.describe 'uaacc' do
 
-  # A test method to run the uaacc CLI with arguments and make its behavior observable
   def uaacc(args)
     System.reset
 
     begin
       CLI.new.main(args.split(' '))
       raise 'Expected uaacc to call exit, but it did not'
-    rescue => e
-      if e.message.start_with?('uaacc exited ')
-        status = e.message.gsub('uaacc exited ', '').to_i
-      else
-        raise
-      end
+    rescue UaaccExited
     end
 
     UaaccResult.new(System.stdout, System.stderr, System.status)
@@ -45,10 +37,8 @@ RSpec.describe 'uaacc' do
     USAGE
   end
 
-  let(:config_file) { File.join(ENV['HOME'], '.uaacc') }
-
   before do
-    File.delete(config_file) if File.exist?(config_file)
+    System.reset_files
   end
 
   describe 'help message' do

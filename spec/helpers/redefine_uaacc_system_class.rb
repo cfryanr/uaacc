@@ -1,7 +1,9 @@
-# Redefine the puts and exit methods used by uaacc to make its behavior observable
+class UaaccExited < Exception
+end
+
 class System
   class << self
-    attr_reader :stdout, :stderr, :status
+    attr_reader :stdout, :stderr, :status, :conf_file
   end
 
   def self.puts_stdout(msg)
@@ -16,11 +18,27 @@ class System
 
   def self.do_exit(code)
     @status = code
-    raise "uaacc exited #{code}"
+    # raise to end the invocation of the app's code, simulating exit without actually exiting
+    raise UaaccExited, "uaacc exited with code #{code}"
+  end
+
+  def self.read_file(path)
+    raise "Unexpected read_file: #{path}" unless path == Config::FILE
+    @conf_file
+  end
+
+  def self.write_file(path, content)
+    raise "Unexpected write_file: #{path}" unless path == Config::FILE
+    @conf_file = content
   end
 
   def self.reset
     @stdout = ''
     @stderr = ''
+    @status = nil
+  end
+
+  def self.reset_files
+    @conf_file = ''
   end
 end
