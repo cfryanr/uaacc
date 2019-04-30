@@ -74,7 +74,7 @@ class Errors
   end
 end
 
-class Config
+class State
   FILE = File.join(ENV['HOME'], '.uaacc')
 
   def self.put(hash)
@@ -93,8 +93,8 @@ class Config
     HashUtils.symbolize(YAML.load(text))
   end
 
-  def self.write(config)
-    System.write_file(FILE, HashUtils.stringify(config).to_yaml)
+  def self.write(state)
+    System.write_file(FILE, HashUtils.stringify(state).to_yaml)
   end
 end
 
@@ -116,11 +116,11 @@ class Command
 
   def save_response(response)
     json = response['content-type'].start_with?('application/json')
-    Config.put(response: response_as_hash(response))
+    State.put(response: response_as_hash(response))
     if json
-      Config.put(json_response_body_as_yml: JSON.parse(response.body))
+      State.put(json_response_body_as_yml: JSON.parse(response.body))
     else
-      Config.put(json_response_body_as_yml: nil)
+      State.put(json_response_body_as_yml: nil)
     end
   end
 
@@ -149,7 +149,7 @@ class Command
   end
 
   def do_request(request, uri, json = false)
-    cookies = Config.get(:cookies)
+    cookies = State.get(:cookies)
     request['Cookie'] = cookies.to_a.map { |k, v| "#{k}=#{v}" }.join('; ')
 
     if json
@@ -179,7 +179,7 @@ class Command
     set_cookies = response.get_fields('set-cookie')
     if set_cookies
       set_cookies = set_cookies.map { |f| f.split(';').first.split('=', 2) }.to_h
-      Config.put(cookies: cookies.merge(set_cookies))
+      State.put(cookies: cookies.merge(set_cookies))
     end
 
     if @debug
@@ -214,7 +214,7 @@ class Target < Command
     Errors.error('target should not have fragment') if uri.fragment
     Errors.error('target should not have query params') if uri.query
     uri.path = uri.path.gsub(/\/*$/, '') # remove all trailing slashes
-    Config.put(target: uri.to_s)
+    State.put(target: uri.to_s)
   end
 
   def print_target
@@ -222,7 +222,7 @@ class Target < Command
   end
 
   def self.target
-    target = Config.get(:target)
+    target = State.get(:target)
     Errors.error('No target set') unless target
     URI.parse(target)
   end
@@ -246,7 +246,7 @@ class Login < Command
     login_get_uri.path = login_get_uri.path + '/login'
     login_get_response = get_request(login_get_uri)
     Errors.error('GET /login failed') unless login_get_response.is_a?(Net::HTTPSuccess)
-    csrf_token = Config.get(:cookies)[:'X-Uaa-Csrf']
+    csrf_token = State.get(:cookies)[:'X-Uaa-Csrf']
 
     login_post_uri = Target.target
     login_post_uri.path = login_post_uri.path + '/login.do'
@@ -273,7 +273,7 @@ class Logout < Command
   end
 
   def run
-    Config.put(cookies: {})
+    State.put(cookies: {})
   end
 end
 
@@ -401,7 +401,7 @@ class Expect < Command
   end
 
   def run
-    response = Config.get(:response)
+    response = State.get(:response)
 
     case @subject
     when 'status'

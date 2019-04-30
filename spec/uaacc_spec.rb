@@ -1,5 +1,6 @@
 require 'vcr'
 require_relative 'helpers/rspec_config'
+require_relative 'helpers/vcr_config'
 require_relative 'helpers/custom_matchers'
 require_relative 'helpers/uaacc_result'
 load '../uaacc'
@@ -20,7 +21,7 @@ RSpec.describe 'uaacc' do
   end
 
   let(:expected_usage_help_text) do
-    <<~USAGE
+    usage = <<-USAGE
       Usage:
       Global options: [{-h|--help}]
         uaacc target [url]
@@ -35,6 +36,9 @@ RSpec.describe 'uaacc' do
         uaacc expect body_json_path <json_path> [not] {equals|contains|starts_with|ends_with|matches} <expected_text>
         uaacc print body_json_path <path>
     USAGE
+    lines = usage.split("\n")
+    indent = lines.first.index('Usage')
+    lines.map { |line| line[indent..-1] }.join("\n") + "\n"
   end
 
   before do
@@ -109,7 +113,7 @@ RSpec.describe 'uaacc' do
       expect(uaacc 'login 1').to be_error_with_stderr_and_status("ERROR: Wrong number of arguments to \"login\" subcommand\n\n#{expected_usage_help_text}", 1)
     end
 
-    context 'when there is a target in the config file', :vcr do
+    context 'when there is a target in the state file', :vcr do
       before do
         System.set_config_file_content(target: 'http://localhost:8080/uaa')
       end
@@ -130,7 +134,7 @@ RSpec.describe 'uaacc' do
         end
       end
 
-      context 'when there is also a session cookie in the config file' do
+      context 'when there is also a session cookie in the state file' do
         before do
           System.set_config_file_content(
               target: 'http://localhost:8080/uaa',
@@ -146,7 +150,7 @@ RSpec.describe 'uaacc' do
       end
     end
 
-    context 'when there is no target in the config file' do
+    context 'when there is no target in the state file' do
       it 'errors' do
         expect(uaacc 'login u p').to be_error_with_stderr_and_status("ERROR: No target set\n", 2)
       end
@@ -158,13 +162,13 @@ RSpec.describe 'uaacc' do
       expect(uaacc 'logout anything').to be_error_with_stderr_and_status("ERROR: Wrong number of arguments to \"logout\" subcommand\n\n#{expected_usage_help_text}", 1)
     end
 
-    context 'when there are no cookies in the config file' do
+    context 'when there are no cookies in the state file' do
       it 'succeeds' do
         expect(uaacc 'logout').to be_quiet_success
       end
     end
 
-    context 'when there are cookies in the config file' do
+    context 'when there are cookies in the state file' do
       before do
         System.set_config_file_content(
             cookies: {
@@ -175,9 +179,9 @@ RSpec.describe 'uaacc' do
         )
       end
 
-      it 'succeeds and deletes all cookies and leaves other config values' do
+      it 'succeeds and deletes all cookies and leaves other state values' do
         expect(uaacc 'logout').to be_quiet_success
-        expect(System.config_file_contents).to eq(cookies: {},target: 'the_target')
+        expect(System.config_file_contents).to eq(cookies: {}, target: 'the_target')
       end
     end
   end

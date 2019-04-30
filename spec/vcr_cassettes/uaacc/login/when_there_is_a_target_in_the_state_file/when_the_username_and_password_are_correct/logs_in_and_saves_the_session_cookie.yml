@@ -25,8 +25,8 @@ http_interactions:
       Strict-Transport-Security:
       - max-age=31536000
       Set-Cookie:
-      - X-Uaa-Csrf=9TSptYy1C7V8NXJSOdo5bB; Max-Age=86400; Expires=Wed, 01-May-2019
-        04:29:53 GMT; Path=/uaa/; HttpOnly
+      - X-Uaa-Csrf=ABbSxHTz2I88dsLWoV5EJP; Max-Age=86400; Expires=Wed, 01-May-2019
+        06:54:30 GMT; Path=/uaa/; HttpOnly
       Cache-Control:
       - no-cache, no-store, max-age=0, must-revalidate
       Pragma:
@@ -46,7 +46,7 @@ http_interactions:
       Transfer-Encoding:
       - chunked
       Date:
-      - Tue, 30 Apr 2019 04:29:53 GMT
+      - Tue, 30 Apr 2019 06:54:30 GMT
     body:
       encoding: ASCII-8BIT
       string: !binary |-
@@ -78,7 +78,7 @@ http_interactions:
         IAogICAgICAgIDxmb3JtIGFjdGlvbj0iL3VhYS9sb2dpbi5kbyIgbWV0aG9k
         PSJwb3N0IiBub3ZhbGlkYXRlPSJub3ZhbGlkYXRlIiBhY2NlcHQtY2hhcnNl
         dD0iVVRGLTgiPjxpbnB1dCB0eXBlPSJoaWRkZW4iIG5hbWU9IlgtVWFhLUNz
-        cmYiIHZhbHVlPSI5VFNwdFl5MUM3VjhOWEpTT2RvNWJCIi8+CiAgICAgICAg
+        cmYiIHZhbHVlPSJBQmJTeEhUejJJODhkc0xXb1Y1RUpQIi8+CiAgICAgICAg
         ICAgIDxpbnB1dCBuYW1lPSJ1c2VybmFtZSIKICAgICAgICAgICAgICAgICAg
         IHR5cGU9InRleHQiCiAgICAgICAgICAgICAgICAgICBwbGFjZWhvbGRlcj0i
         RW1haWwiCiAgICAgICAgICAgICAgICAgICBjbGFzcz0iZm9ybS1jb250cm9s
@@ -107,13 +107,13 @@ http_interactions:
         ICAgICAgICAgCiAgICAgICAgCiAgICA8L2Rpdj4KPC9kaXY+CgoKICAgIAoK
         PC9ib2R5Pgo8L2h0bWw+Cg==
     http_version: 
-  recorded_at: Tue, 30 Apr 2019 04:29:53 GMT
+  recorded_at: Tue, 30 Apr 2019 06:54:30 GMT
 - request:
     method: post
     uri: http://localhost:8080/uaa/login.do
     body:
       encoding: US-ASCII
-      string: username=marissa&password=wrong&X-Uaa-Csrf=9TSptYy1C7V8NXJSOdo5bB&form_redirect_uri=http%3A%2F%2Flocalhost%3A8080%2Fuaa
+      string: username=marissa&password=koala&X-Uaa-Csrf=ABbSxHTz2I88dsLWoV5EJP&form_redirect_uri=http%3A%2F%2Flocalhost%3A8080%2Fuaa
     headers:
       Accept-Encoding:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
@@ -126,7 +126,7 @@ http_interactions:
       Content-Type:
       - application/x-www-form-urlencoded
       Cookie:
-      - X-Uaa-Csrf=9TSptYy1C7V8NXJSOdo5bB
+      - X-Uaa-Csrf=ABbSxHTz2I88dsLWoV5EJP
   response:
     status:
       code: 302
@@ -135,8 +135,13 @@ http_interactions:
       Strict-Transport-Security:
       - max-age=31536000
       Set-Cookie:
-      - Current-User=; Max-Age=0; Expires=Thu, 01-Jan-1970 00:00:10 GMT; Path=/
-      - JSESSIONID=E360CF2A6A176FBF0E3B1C503FE46FE0; Path=/uaa; HttpOnly
+      - Current-User=%7B%22userId%22%3A%22c365bca0-9f21-42c2-bfcc-6af3719c9a45%22%7D;
+        Max-Age=1800; Expires=Tue, 30-Apr-2019 07:24:30 GMT; Path=/
+      - JSESSIONID=5976BDC6494DDF50191721CD3FF7825A; Path=/uaa; HttpOnly
+      - X-Uaa-Csrf=Y6ArSQAoe7nwY0fqq064rO; Max-Age=0; Expires=Thu, 01-Jan-1970 00:00:10
+        GMT; Path=/uaa/; HttpOnly
+      - X-Uaa-Csrf=uZ6TSNCRYK2dYeD34MI84s; Max-Age=86400; Expires=Wed, 01-May-2019
+        06:54:30 GMT; Path=/uaa/; HttpOnly
       Cache-Control:
       - no-cache, no-store, max-age=0, must-revalidate
       Pragma:
@@ -150,14 +155,14 @@ http_interactions:
       X-Content-Type-Options:
       - nosniff
       Location:
-      - http://localhost:8080/uaa/login?error=login_failure
+      - http://localhost:8080/uaa
       Content-Length:
       - '0'
       Date:
-      - Tue, 30 Apr 2019 04:29:53 GMT
+      - Tue, 30 Apr 2019 06:54:30 GMT
     body:
       encoding: UTF-8
       string: ''
     http_version: 
-  recorded_at: Tue, 30 Apr 2019 04:29:53 GMT
+  recorded_at: Tue, 30 Apr 2019 06:54:30 GMT
 recorded_with: VCR 4.0.0

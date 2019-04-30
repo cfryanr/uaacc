@@ -23,17 +23,17 @@ class System
   end
 
   def self.read_file(path)
-    raise "Unexpected read_file: #{path}" unless path == Config::FILE
+    raise "Unexpected read_file: #{path}" unless path == State::FILE
     @conf_file
   end
 
   def self.write_file(path, content)
-    raise "Unexpected write_file: #{path}" unless path == Config::FILE
+    raise "Unexpected write_file: #{path}" unless path == State::FILE
     @conf_file = content
   end
 
-  def self.set_config_file_content(config)
-    @conf_file = HashUtils.stringify(config).to_yaml
+  def self.set_config_file_content(state)
+    @conf_file = HashUtils.stringify(state).to_yaml
   end
 
   def self.config_file_contents
