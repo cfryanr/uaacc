@@ -115,7 +115,7 @@ class Command
   end
 
   def save_response(response)
-    json = response['content-type'].start_with?('application/json')
+    json = response['content-type'] && response['content-type'].start_with?('application/json')
     State.put(response: response_as_hash(response))
     if json
       State.put(json_response_body_as_yml: JSON.parse(response.body))
