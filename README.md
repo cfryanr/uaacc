@@ -7,8 +7,7 @@ This is a work in progress. Stay tuned for an initial release after some more wo
 `uaacc` is a simple Ruby script which does not depend on any gems, so it is easy to install on any UNIX-like system.
 
 ```bash
-sudo curl -fLo /usr/local/bin/uaacc https://raw.githubusercontent.com/cfryanr/uaacc/master/uaacc
-sudo chmod 755 /usr/local/bin/uaacc
+sudo curl -fLo /usr/local/bin/uaacc https://raw.githubusercontent.com/cfryanr/uaacc/master/uaacc && sudo chmod 755 /usr/local/bin/uaacc
 ```
 
 ### Dependencies
