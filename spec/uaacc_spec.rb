@@ -185,16 +185,31 @@ RSpec.describe 'uaacc' do
       end
     end
   end
+
+  describe 'get' do
+    it 'errors with help message when too few arguments are given' do
+      expect(uaacc 'get').to be_error_with_stderr_and_status("ERROR: Wrong number of arguments to \"get\" subcommand\n\n#{expected_usage_help_text}", 1)
+    end
+
+    context 'when there is no target set' do
+      it 'errors' do
+        expect(uaacc 'get anything').to be_error_with_stderr_and_status("ERROR: No target set\n", 2)
+      end
+    end
+
+    context 'when the target is set', :vcr do
+      before do
+        uaacc 'target http://localhost:8080/uaa'
+      end
+
+      it 'makes a request to the given path and stores the response' do
+        expect(System.config_file_contents[:response]).to be_nil
+        expect(uaacc 'get /info').to be_quiet_success
+
+        expect(System.config_file_contents[:response][:code]).to eq(200)
+        expect(System.config_file_contents[:response][:body]).to include('{"app":{"version":')
+        expect(System.config_file_contents[:response][:headers]).to include('cache-control': ['no-store'])
+      end
+    end
+  end
 end
-
-#uaac client add myclient --name myclient \
-#  --scope uaa.user --authorized_grant_types authorization_code \
-#  --authorities uaa.user --autoapprove uaa.user --secret pass \
-#  --redirect_uri http://example.com
-
-#uaacc login admin $UAA_ADMIN_USER_PASSWORD --debug
-#uaacc get oauth/authorize response_type=code client_id=myclient scope=uaa.user redirect_uri=http://example.com/path --debug
-#uaacc get info --debug --json
-#uaacc get info --debug --html
-#cat $HOME/.uaacc
-
