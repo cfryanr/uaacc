@@ -1,0 +1,51 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: http://localhost:8080/uaa/login
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - application/json
+      User-Agent:
+      - Ruby
+      Host:
+      - localhost:8080
+      Cookie:
+      - ''
+  response:
+    status:
+      code: 200
+      message: ''
+    headers:
+      Strict-Transport-Security:
+      - max-age=31536000
+      Set-Cookie:
+      - X-Uaa-Csrf=q4Ti6coCGH33U83AOJtS6H; Max-Age=86400; Expires=Sun, 05-May-2019
+        03:28:43 GMT; Path=/uaa/; HttpOnly
+      Cache-Control:
+      - no-store
+      X-Xss-Protection:
+      - 1; mode=block
+      X-Frame-Options:
+      - DENY
+      X-Content-Type-Options:
+      - nosniff
+      Content-Type:
+      - application/json;charset=UTF-8
+      Content-Language:
+      - en-US
+      Transfer-Encoding:
+      - chunked
+      Date:
+      - Sat, 04 May 2019 03:28:43 GMT
+    body:
+      encoding: UTF-8
+      string: '{"app":{"version":"4.30.0-SNAPSHOT"},"links":{"uaa":"http://localhost:8080/uaa","passwd":"/forgot_password","login":"http://localhost:8080/uaa","register":"/create_account"},"zone_name":"uaa","entityID":"cloudfoundry-saml-login","commit_id":"5157a4e","idpDefinitions":{},"prompts":{"username":["text","Email"],"password":["password","Password"]},"timestamp":"2019-05-02T13:50:58-0700"}'
+    http_version: 
+  recorded_at: Sat, 04 May 2019 03:28:43 GMT
+recorded_with: VCR 4.0.0

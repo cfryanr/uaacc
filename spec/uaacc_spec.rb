@@ -203,12 +203,48 @@ RSpec.describe 'uaacc' do
       end
 
       it 'makes a request to the given path and stores the response' do
-        expect(System.config_file_contents[:response]).to be_nil
         expect(uaacc 'get /info').to be_quiet_success
-
         expect(System.config_file_contents[:response][:code]).to eq(200)
         expect(System.config_file_contents[:response][:body]).to include('{"app":{"version":')
         expect(System.config_file_contents[:response][:headers]).to include(:'cache-control' => ['no-store'])
+      end
+
+      it 'allows requesting the root path' do
+        expect(uaacc 'get /').to be_quiet_success
+        expect(System.config_file_contents[:response][:code]).to eq(302)
+        expect(System.config_file_contents[:response][:headers][:location][0]).to end_with('/login')
+      end
+
+      describe '--json and --html options' do
+        it 'makes html requests with --html' do
+          expect(uaacc 'get /login --html').to be_quiet_success
+          expect(System.config_file_contents[:response][:code]).to eq(200)
+          expect(System.config_file_contents[:response][:body]).to include('<h1>Welcome!</h1>')
+        end
+
+        it 'allows the html switch before the path too' do
+          expect(uaacc 'get --html /login').to be_quiet_success
+          expect(System.config_file_contents[:response][:code]).to eq(200)
+          expect(System.config_file_contents[:response][:body]).to include('<h1>Welcome!</h1>')
+        end
+
+        it 'makes json requests with --json' do
+          expect(uaacc 'get /login --json').to be_quiet_success
+          expect(System.config_file_contents[:response][:code]).to eq(200)
+          expect(System.config_file_contents[:response][:body]).to include('{"app":{"version":')
+        end
+
+        it 'makes json requests when both --json and --html are used' do
+          expect(uaacc 'get /login --json --html').to be_quiet_success
+          expect(System.config_file_contents[:response][:code]).to eq(200)
+          expect(System.config_file_contents[:response][:body]).to include('{"app":{"version":')
+        end
+
+        it 'defaults to json requests' do
+          expect(uaacc 'get /login').to be_quiet_success
+          expect(System.config_file_contents[:response][:code]).to eq(200)
+          expect(System.config_file_contents[:response][:body]).to include('{"app":{"version":')
+        end
       end
     end
   end

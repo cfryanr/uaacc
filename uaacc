@@ -179,11 +179,12 @@ class Command
     set_cookies = response.get_fields('set-cookie')
     if set_cookies
       set_cookies = set_cookies.map { |f| f.split(';').first.split('=', 2) }.to_h
-      State.put(cookies: cookies.merge(set_cookies))
+      State.put(cookies: cookies.merge(set_cookies)) if cookies
     end
 
     if @debug
-      System.puts_stderr HashUtils.stringify(response_as_hash(response).merge(type: 'response')).to_yaml
+      System.puts_stderr HashUtils.stringify({type: 'response'}.
+          merge(response_as_hash(response))).to_yaml
     end
 
     response
