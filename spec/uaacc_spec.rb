@@ -208,7 +208,7 @@ RSpec.describe 'uaacc' do
 
         expect(System.config_file_contents[:response][:code]).to eq(200)
         expect(System.config_file_contents[:response][:body]).to include('{"app":{"version":')
-        expect(System.config_file_contents[:response][:headers]).to include('cache-control': ['no-store'])
+        expect(System.config_file_contents[:response][:headers]).to include(:'cache-control' => ['no-store'])
       end
     end
   end
