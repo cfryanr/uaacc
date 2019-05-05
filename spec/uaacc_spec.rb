@@ -20,8 +20,14 @@ RSpec.describe 'uaacc' do
     UaaccResult.new(System.stdout, System.stderr, System.status)
   end
 
+  def trim_leading_indent(str)
+    lines = str.split("\n")
+    indent = lines.map { |line| line.index(/[^\s]/) || line.length }.min
+    lines.map { |line| line[indent..-1] }.join("\n") + "\n"
+  end
+
   let(:expected_usage_help_text) do
-    usage = <<-USAGE
+    trim_leading_indent(<<-USAGE
       Usage:
       Global options: [{-h|--help}]
         uaacc target [url]
@@ -36,9 +42,7 @@ RSpec.describe 'uaacc' do
         uaacc expect body_json_path <json_path> [not] {equals|contains|starts_with|ends_with|matches} <expected_text>
         uaacc print body_json_path <path>
     USAGE
-    lines = usage.split("\n")
-    indent = lines.first.index('Usage')
-    lines.map { |line| line[indent..-1] }.join("\n") + "\n"
+    )
   end
 
   before do
@@ -215,6 +219,30 @@ RSpec.describe 'uaacc' do
         expect(System.config_file_contents[:response][:headers][:location][0]).to end_with('/login')
       end
 
+      describe 'leading slashes pn the path' do
+        it 'assumes a leading slash when not provided' do
+          expect(uaacc 'get info').to be_quiet_success
+          expect(System.config_file_contents[:response][:body]).to include('{"app":{"version":')
+        end
+
+        it 'removes extra leading slashes' do
+          expect(uaacc 'get ///info').to be_quiet_success
+          expect(System.config_file_contents[:response][:body]).to include('{"app":{"version":')
+        end
+      end
+
+      describe 'query params' do
+        before do
+          uaacc 'login marissa koala'
+        end
+
+        it 'accepts any number of query params after the path' do
+          expect(uaacc 'get /oauth/authorize response_type=code client_id=app scope=openid redirect_uri=http://localhost:8080/').to be_quiet_success
+          expect(System.config_file_contents[:response][:code]).to eq(302)
+          expect(System.config_file_contents[:response][:headers][:location][0]).to start_with('http://localhost:8080/?code=')
+        end
+      end
+
       describe '--json and --html options' do
         it 'makes html requests with --html' do
           expect(uaacc 'get /login --html').to be_quiet_success
@@ -244,6 +272,49 @@ RSpec.describe 'uaacc' do
           expect(uaacc 'get /login').to be_quiet_success
           expect(System.config_file_contents[:response][:code]).to eq(200)
           expect(System.config_file_contents[:response][:body]).to include('{"app":{"version":')
+        end
+      end
+
+      describe 'debug' do
+        let(:expected_debug_text) do
+          trim_leading_indent(<<-OUTPUT
+            ---
+            type: request
+            method: GET
+            uri: http://localhost:8080/uaa/info?
+            headers:
+              accept-encoding:
+              - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+              accept:
+              - application/json
+              user-agent:
+              - Ruby
+              host:
+              - localhost:8080
+              cookie:
+              - ''
+            body: 
+            ---
+            type: response
+            code: 200
+            headers:
+              cache-control:
+              - no-store
+              content-type:
+              - application/json;charset=UTF-8
+              content-language:
+              - en-US
+              transfer-encoding:
+              - chunked
+              date:
+              - Sun, 05 May 2019 15:04:56 GMT
+            body: '{"app":{"version":"4.30.0-SNAPSHOT"},"links":{"uaa":"http://localhost:8080/uaa","passwd":"/forgot_password","login":"http://localhost:8080/uaa","register":"/create_account"},"zone_name":"uaa","entityID":"cloudfoundry-saml-login","commit_id":"5157a4e","idpDefinitions":{},"prompts":{"username":["text","Email"],"password":["password","Password"]},"timestamp":"2019-05-02T13:50:58-0700"}'
+          OUTPUT
+          )
+        end
+
+        it 'prints request and response when given --debug' do
+          expect(uaacc 'get /info --debug').to be_successful_with_stdout_and_stderr('', expected_debug_text)
         end
       end
     end

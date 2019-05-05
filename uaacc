@@ -149,8 +149,8 @@ class Command
   end
 
   def do_request(request, uri, json = false)
-    cookies = State.get(:cookies)
-    request['Cookie'] = cookies.to_a.map { |k, v| "#{k}=#{v}" }.join('; ')
+    cookies = State.get(:cookies) || {}
+    request['Cookie'] = cookies.to_a.sort.map { |k, v| "#{k}=#{v}" }.join('; ')
 
     if json
       request['Accept'] = 'application/json'
@@ -166,7 +166,7 @@ class Command
           headers: request.to_hash,
           body: request.body
       }
-      System.puts_stdout HashUtils.stringify(request_to_print).to_yaml
+      System.puts_stderr HashUtils.stringify(request_to_print).to_yaml
     end
 
     response = Net::HTTP.start(
@@ -178,8 +178,16 @@ class Command
 
     set_cookies = response.get_fields('set-cookie')
     if set_cookies
-      set_cookies = set_cookies.map { |f| f.split(';').first.split('=', 2) }.to_h
-      State.put(cookies: cookies.merge(set_cookies)) if cookies
+      new_cookies_array = set_cookies.map { |f| f.split(';').map { |k_eq_v_str| k_eq_v_str.strip.split('=', 2) } }
+
+      cookies_to_remove_array = new_cookies_array.select { |c| c.include?(['Max-Age', '0']) }
+      cookies_to_add_array = new_cookies_array.map(&:first) - cookies_to_remove_array.map(&:first)
+
+      cookies_to_add = cookies_to_add_array.to_h
+      cookies_to_remove = cookies_to_remove_array.map(&:first).to_h
+
+      cookies.delete_if { |k, v| cookies_to_remove.has_key?(k) && cookies_to_remove[k] == v }
+      State.put(cookies: cookies.merge(cookies_to_add))
     end
 
     if @debug

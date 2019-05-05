@@ -1,0 +1,217 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: http://localhost:8080/uaa/login
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - text/html
+      User-Agent:
+      - Ruby
+      Host:
+      - localhost:8080
+      Cookie:
+      - ''
+  response:
+    status:
+      code: 200
+      message: ''
+    headers:
+      Strict-Transport-Security:
+      - max-age=31536000
+      Set-Cookie:
+      - X-Uaa-Csrf=7p1WzeTOtFil1xzF6MIWLK; Max-Age=86400; Expires=Mon, 06-May-2019
+        01:53:16 GMT; Path=/uaa/; HttpOnly
+      Cache-Control:
+      - no-cache, no-store, max-age=0, must-revalidate
+      Pragma:
+      - no-cache
+      Expires:
+      - '0'
+      X-Xss-Protection:
+      - 1; mode=block
+      X-Frame-Options:
+      - DENY
+      X-Content-Type-Options:
+      - nosniff
+      Content-Type:
+      - text/html;charset=UTF-8
+      Content-Language:
+      - en-US
+      Transfer-Encoding:
+      - chunked
+      Date:
+      - Sun, 05 May 2019 01:53:16 GMT
+    body:
+      encoding: ASCII-8BIT
+      string: !binary |-
+        PCFET0NUWVBFIGh0bWw+CjxodG1sIGRpcj0ibHRyIiBsYW5nPSJlbiIgPgo8
+        aGVhZD4KICAgIDx0aXRsZT5DbG91ZCBGb3VuZHJ5PC90aXRsZT4KICAgIDxs
+        aW5rIGhyZWY9Jy91YWEvcmVzb3VyY2VzL29zcy9pbWFnZXMvc3F1YXJlLWxv
+        Z28ucG5nJyByZWw9J3Nob3J0Y3V0IGljb24nIC8+CiAgICA8bWV0YSBjaGFy
+        c2V0PSd1dGYtOCcgLz4KICAgIDxtZXRhIG5hbWU9J2F1dGhvcicgY29udGVu
+        dD0iQ2xvdWQgRm91bmRyeSIgLz4KICAgIDxtZXRhIG5hbWU9J2NvcHlyaWdo
+        dCcgY29udGVudD0iQ29weXJpZ2h0IMKpIENsb3VkRm91bmRyeS5vcmcgRm91
+        bmRhdGlvbiwgSW5jLiAgMjAxOS4gQWxsIFJpZ2h0cyBSZXNlcnZlZC4iIC8+
+        CiAgICA8bWV0YSBuYW1lPSdyb2JvdHMnIGNvbnRlbnQ9J2FsbCcgLz4KICAg
+        IDxtZXRhIG5hbWU9J0Rlc2NyaXB0aW9uJyBjb250ZW50PSIiLz4KICAgIDxt
+        ZXRhIG5hbWU9J2tleXdvcmRzJyBjb250ZW50PSIiLz4KICAgIDxtZXRhIG5h
+        bWU9InZpZXdwb3J0IiBjb250ZW50PSJ3aWR0aD1kZXZpY2Utd2lkdGgsIGlu
+        aXRpYWwtc2NhbGU9MS4wIi8+CiAgICA8bGluayBocmVmPSIvdWFhL3ZlbmRv
+        ci9mb250LWF3ZXNvbWUvY3NzL2ZvbnQtYXdlc29tZS5taW4uY3NzIiByZWw9
+        InN0eWxlc2hlZXQiLz4KICAgIDxsaW5rIGhyZWY9Ii91YWEvcmVzb3VyY2Vz
+        L29zcy9zdHlsZXNoZWV0cy9hcHBsaWNhdGlvbi5jc3MiIHJlbD0ic3R5bGVz
+        aGVldCIvPgogICAgPHN0eWxlPi5oZWFkZXItaW1hZ2Uge2JhY2tncm91bmQt
+        aW1hZ2U6IHVybCgvdWFhL3Jlc291cmNlcy9vc3MvaW1hZ2VzL3Byb2R1Y3Qt
+        bG9nby5wbmcpO308L3N0eWxlPgo8bWV0YSBodHRwLWVxdWl2PSJyZWZyZXNo
+        IiBjb250ZW50PSI4NjQwMCIgLz4KPC9oZWFkPgo8Ym9keT4KPGRpdiBjbGFz
+        cz0iY29udGVudCI+CiAgICA8ZGl2IGNsYXNzPSJoZWFkZXIiPgogICAgICAg
+        IDxkaXY+PC9kaXY+CiAgICAgICAgPGRpdiBjbGFzcz0iaGVhZGVyLWltYWdl
+        Ij48L2Rpdj4KICAgIDwvZGl2PgoKICAgIDxkaXYgY2xhc3M9ImlzbGFuZCI+
+        CiAgICA8aDE+V2VsY29tZSE8L2gxPgogICAgPGRpdiBjbGFzcz0iaXNsYW5k
+        LWNvbnRlbnQiPgogICAgICAgIAogICAgICAgIAogICAgICAgIAogICAgICAg
+        IAogICAgICAgIDxmb3JtIGFjdGlvbj0iL3VhYS9sb2dpbi5kbyIgbWV0aG9k
+        PSJwb3N0IiBub3ZhbGlkYXRlPSJub3ZhbGlkYXRlIiBhY2NlcHQtY2hhcnNl
+        dD0iVVRGLTgiPjxpbnB1dCB0eXBlPSJoaWRkZW4iIG5hbWU9IlgtVWFhLUNz
+        cmYiIHZhbHVlPSI3cDFXemVUT3RGaWwxeHpGNk1JV0xLIi8+CiAgICAgICAg
+        ICAgIDxpbnB1dCBuYW1lPSJ1c2VybmFtZSIKICAgICAgICAgICAgICAgICAg
+        IHR5cGU9InRleHQiCiAgICAgICAgICAgICAgICAgICBwbGFjZWhvbGRlcj0i
+        RW1haWwiCiAgICAgICAgICAgICAgICAgICBjbGFzcz0iZm9ybS1jb250cm9s
+        Ii8+PGlucHV0IG5hbWU9InBhc3N3b3JkIgogICAgICAgICAgICAgICAgICAg
+        dHlwZT0icGFzc3dvcmQiCiAgICAgICAgICAgICAgICAgICBwbGFjZWhvbGRl
+        cj0iUGFzc3dvcmQiCiAgICAgICAgICAgICAgICAgICBjbGFzcz0iZm9ybS1j
+        b250cm9sIiBhdXRvY29tcGxldGU9Im9mZiIvPgogICAgICAgICAgICA8aW5w
+        dXQgdHlwZT0ic3VibWl0IiB2YWx1ZT0iU2lnbiBpbiIgY2xhc3M9ImlzbGFu
+        ZC1idXR0b24iLz4KICAgICAgICAgICAgCiAgICAgICAgICAgIAogICAgICAg
+        ICAgICAKICAgICAgICAgICAgCiAgICAgICAgPC9mb3JtPgogICAgICAgIAog
+        ICAgICAgIDxkaXYgY2xhc3M9InNhbWwtbG9naW4iPgogICAgICAgICAgICAK
+        ICAgICAgICAgICAgCiAgICAgICAgICAgIAogICAgICAgIDwvZGl2PgogICAg
+        ICAgIAogICAgICAgIDxzcGFuIGNsYXNzPSJsZWZ0Ij4KICAgICAgICAgICAg
+        PGEgaHJlZj0iL3VhYS9jcmVhdGVfYWNjb3VudCIgY2xhc3M9ImxpbmstbG93
+        bGlnaHQiPkNyZWF0ZSBhY2NvdW50PC9hPgogICAgICAgIDwvc3Bhbj48c3Bh
+        biBjbGFzcz0icmlnaHQiPgogICAgICAgICAgICA8YSBocmVmPSIvdWFhL2Zv
+        cmdvdF9wYXNzd29yZCIgY2xhc3M9ImxpbmstbG93bGlnaHQiPlJlc2V0IHBh
+        c3N3b3JkPC9hPgogICAgICAgIDwvc3Bhbj4KICAgICAgICAKICAgIDwvZGl2
+        Pgo8L2Rpdj4KICAgIDxkaXYgY2xhc3M9ImZvb3Rlci1zcGFjZXIiPjwvZGl2
+        Pgo8L2Rpdj4KPGRpdiBjbGFzcz0iZm9vdGVyIj4KICAgIDxkaXYgY2xhc3M9
+        ImNvcHlyaWdodCIKICAgICAgICAgdGl0bGU9IlZlcnNpb246IDQuMzAuMC1T
+        TkFQU0hPVCwgQ29tbWl0OiA1MTU3YTRlLCBUaW1lc3RhbXA6IDIwMTktMDUt
+        MDJUMTM6NTA6NTgtMDcwMCwgVUFBOiBodHRwOi8vbG9jYWxob3N0OjgwODAv
+        dWFhIj4KICAgICAgICAgQ29weXJpZ2h0IMKpIENsb3VkRm91bmRyeS5vcmcg
+        Rm91bmRhdGlvbiwgSW5jLiAgMjAxOS4gQWxsIFJpZ2h0cyBSZXNlcnZlZC4K
+        ICAgICAgICAgCiAgICAgICAgCiAgICA8L2Rpdj4KPC9kaXY+CgoKICAgIAoK
+        PC9ib2R5Pgo8L2h0bWw+Cg==
+    http_version: 
+  recorded_at: Sun, 05 May 2019 01:53:16 GMT
+- request:
+    method: post
+    uri: http://localhost:8080/uaa/login.do
+    body:
+      encoding: US-ASCII
+      string: username=marissa&password=koala&X-Uaa-Csrf=7p1WzeTOtFil1xzF6MIWLK&form_redirect_uri=http%3A%2F%2Flocalhost%3A8080%2Fuaa
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - text/html
+      User-Agent:
+      - Ruby
+      Host:
+      - localhost:8080
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Cookie:
+      - X-Uaa-Csrf=7p1WzeTOtFil1xzF6MIWLK
+  response:
+    status:
+      code: 302
+      message: ''
+    headers:
+      Strict-Transport-Security:
+      - max-age=31536000
+      Set-Cookie:
+      - Current-User=%7B%22userId%22%3A%22d8d23157-c7e3-4edb-9421-0726736045a7%22%7D;
+        Max-Age=1800; Expires=Sun, 05-May-2019 02:23:16 GMT; Path=/
+      - JSESSIONID=3DC19A257A544633B02860187E6D8492; Path=/uaa; HttpOnly
+      - X-Uaa-Csrf=idbMH3PgYrE0Q6aKRYeGyz; Max-Age=86400; Expires=Mon, 06-May-2019
+        01:53:16 GMT; Path=/uaa/; HttpOnly
+      - X-Uaa-Csrf=ju6cqIwo1dDYZBEzzzD8QM; Max-Age=0; Expires=Thu, 01-Jan-1970 00:00:10
+        GMT; Path=/uaa/; HttpOnly
+      Cache-Control:
+      - no-cache, no-store, max-age=0, must-revalidate
+      Pragma:
+      - no-cache
+      Expires:
+      - '0'
+      X-Xss-Protection:
+      - 1; mode=block
+      X-Frame-Options:
+      - DENY
+      X-Content-Type-Options:
+      - nosniff
+      Location:
+      - http://localhost:8080/uaa
+      Content-Length:
+      - '0'
+      Date:
+      - Sun, 05 May 2019 01:53:16 GMT
+    body:
+      encoding: UTF-8
+      string: ''
+    http_version: 
+  recorded_at: Sun, 05 May 2019 01:53:16 GMT
+- request:
+    method: get
+    uri: http://localhost:8080/uaa/oauth/authorize?client_id=app&redirect_uri=http://localhost:8080/&response_type=code&scope=openid
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - application/json
+      User-Agent:
+      - Ruby
+      Host:
+      - localhost:8080
+      Cookie:
+      - Current-User=%7B%22userId%22%3A%22d8d23157-c7e3-4edb-9421-0726736045a7%22%7D;
+        JSESSIONID=3DC19A257A544633B02860187E6D8492; X-Uaa-Csrf=idbMH3PgYrE0Q6aKRYeGyz
+  response:
+    status:
+      code: 302
+      message: ''
+    headers:
+      Strict-Transport-Security:
+      - max-age=31536000
+      Set-Cookie:
+      - X-Uaa-Csrf=DqUYYiPZ5xDmXSdt2gOo9y; Max-Age=86400; Expires=Mon, 06-May-2019
+        01:53:16 GMT; Path=/uaa/; HttpOnly
+      Cache-Control:
+      - no-store
+      Location:
+      - http://localhost:8080/?code=SCNSWt12YQ
+      X-Xss-Protection:
+      - 1; mode=block
+      X-Frame-Options:
+      - DENY
+      X-Content-Type-Options:
+      - nosniff
+      Content-Language:
+      - en-US
+      Content-Length:
+      - '0'
+      Date:
+      - Sun, 05 May 2019 01:53:16 GMT
+    body:
+      encoding: UTF-8
+      string: ''
+    http_version: 
+  recorded_at: Sun, 05 May 2019 01:53:16 GMT
+recorded_with: VCR 4.0.0

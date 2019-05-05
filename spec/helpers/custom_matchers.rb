@@ -44,6 +44,29 @@ RSpec::Matchers.define :be_successful_with_stdout do |expected_stdout|
   end
 end
 
+RSpec::Matchers.define :be_successful_with_stdout_and_stderr do |expected_stdout, expected_stderr|
+  match do |actual|
+    actual.stdout == expected_stdout && actual.stderr == expected_stderr && actual.successful?
+  end
+
+  failure_message do |actual|
+    errors(actual, expected_stdout, expected_stderr, false)
+  end
+
+  failure_message_when_negated do |actual|
+    errors(actual, expected_stdout, expected_stderr, true)
+  end
+
+  def errors(actual, expected_stdout, expected_stderr, invert)
+    msg = "Expected #{invert ? 'not ' : ''}to be a success with stdout #{expected_stdout.inspect} and stderr #{expected_stderr.inspect}\nbut "
+    errors = []
+    errors << ["actual status was #{actual.status.inspect}", actual.successful?]
+    errors << ["actual stdout was #{actual.stdout.inspect}", actual.stdout == expected_stdout]
+    errors << ["actual stderr was #{actual.stderr.inspect}", actual.stderr == expected_stderr]
+    msg + errors.select { |e| e[1] == invert }.map(&:first).join(', ')
+  end
+end
+
 RSpec::Matchers.define :be_error_with_stderr_and_status do |expected_stderr, expected_status|
   match do |actual|
     !actual.has_stdout? && actual.stderr == expected_stderr && actual.status == expected_status

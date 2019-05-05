@@ -7,13 +7,15 @@ class System
   end
 
   def self.puts_stdout(msg)
-    @stdout << msg.to_s
-    @stdout << "\n"
+    msg = msg.to_s
+    @stdout << msg
+    @stdout << "\n" unless msg.end_with?("\n")
   end
 
   def self.puts_stderr(msg)
-    @stderr << msg.to_s
-    @stderr << "\n"
+    msg = msg.to_s
+    @stderr << msg
+    @stderr << "\n" unless msg.end_with?("\n")
   end
 
   def self.do_exit(code)
